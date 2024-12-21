@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Player Word Guessing Game</title>
+</head>
+<body>
+    <h1>Two-Player Word Guessing Game</h1>
+
+    <div>
+        <button id="create-game">Create Game</button>
+        <input type="text" id="game-id-input" placeholder="Enter Game ID to Join" />
+        <button id="join-game">Join Game</button>
+    </div>
+
+    <div id="game-info" style="display:none;">
+        <p>Game ID: <span id="game-id"></span></p>
+        <p>Word State: <span id="game-state"></span></p>
+        <input type="text" id="guess-input" maxlength="1" placeholder="Enter a letter" />
+        <button id="submit-guess">Submit Guess</button>
+    </div>
+
+    <p id="message"></p>
+
+    <script>
+        const API_URL = "http://localhost:7071/api/GameLogic";
+let gameId = null;
+
+// Create a new game
+document.getElementById("create-game").addEventListener("click", async () => {
+    const response = await fetch(`${API_URL}?action=start`);
+    const data = await response.json();
+
+    if (response.ok) {
+        gameId = data.gameId;
+        document.getElementById("game-id").textContent = gameId;
+        document.getElementById("game-state").textContent = data.state;
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("game-info").style.display = "block";
+    } else {
+        document.getElementById("message").textContent = data || "Error creating game.";
+    }
+});
+
+// Join an existing game
+document.getElementById("join-game").addEventListener("click", async () => {
+    const inputId = document.getElementById("game-id-input").value;
+    const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "join", gameId: inputId })
+    });
+    const data = await response.json();
+
+    if (response.ok) {
+        gameId = inputId;
+        document.getElementById("game-id").textContent = gameId;
+        document.getElementById("game-state").textContent = data.state;
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("game-info").style.display = "block";
+    } else {
+        document.getElementById("message").textContent = data;
+    }
+});
+
+document.getElementById("submit-guess").addEventListener("click", async () => {
+    const letter = document.getElementById("guess-input").value.toLowerCase();
+    document.getElementById("guess-input").value = ""; // Clear the input field
+
+    if (!letter || letter.length !== 1) {
+        document.getElementById("message").textContent = "Please enter a single letter.";
+        return;
+    }
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "guess", gameId, letter })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Update the game state and message
+            document.getElementById("game-state").textContent = data.state;
+            document.getElementById("message").textContent = data.message || "Guess submitted!";
+        } else {
+            // Display the error message from the backend
+            document.getElementById("message").textContent = data.error || "Error submitting the guess.";
+        }
+    } catch (error) {
+        console.error("Error submitting the guess:", error);
+        document.getElementById("message").textContent = "An error occurred while submitting your guess.";
+    }
+});
+
+
+    </script>
+</body>
+</html>
