@@ -231,8 +231,6 @@ module.exports = async function (context, req) {
         }
         const updatedLettersGuessed = guest_game.letters_guessed + letter;
 
-        console.log("aaaa");
-
         await pool.request()
             .input("guestId", sql.Int, guest.GuestID)
             .input("gameId", sql.VarChar, games.gameId)
