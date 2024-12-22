@@ -135,7 +135,7 @@ module.exports = async function (context, req) {
             return;
         }
         const game = result.recordset[0];
-        if (game.completed == 1 || game.completed == false) {
+        if (game.completed == 0 || game.completed == false) {
             context.res = {
                 status: 200,
                 body: {
@@ -246,7 +246,7 @@ module.exports = async function (context, req) {
             .input("gameId", sql.VarChar, gameId)
             .query(`
                 UPDATE games
-                SET completed = 1
+                SET completed = 0
                 WHERE gameId = @gameId
             `);
             context.res = {
